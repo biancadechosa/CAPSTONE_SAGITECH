@@ -1,0 +1,382 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sagitech - Banana Ripeness AI Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="header">
+            <img src="{% static 'img/logo.png' %}" alt="Sagitech Logo" class="logo">
+        </div>
+        
+        <div class="toggle-btn" id="toggle-btn">
+            <i class="fas fa-chevron-left"></i>
+        </div>
+        
+        <ul class="nav-menu">
+            <li class="nav-item active">
+                <a href="#" class="nav-link">
+                    <div class="nav-icon"><i class="fas fa-tachometer-alt"></i></div>
+                    <span class="nav-text">Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <div class="nav-icon"><i class="fas fa-map-marked-alt"></i></div>
+                    <span class="nav-text">Field Maps</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'scan' %}" class="nav-link">
+                    <div class="nav-icon"><i class="fas fa-camera"></i></div>
+                    <span class="nav-text">Banana Scan</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <div class="nav-icon"><i class="fas fa-chart-line"></i></div>
+                    <span class="nav-text">Analytics</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <div class="nav-icon"><i class="fas fa-calendar-alt"></i></div>
+                    <span class="nav-text">Schedule</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <div class="nav-icon"><i class="fas fa-cog"></i></div>
+                    <span class="nav-text">Settings</span>
+                </a>
+            </li>
+        </ul>
+        
+        <div class="user-profile">
+            <div class="user-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="user-info">
+                <div class="user-name">Maria Sophia Bianca Delos Reyes</div>
+                <div class="user-role">Farm Manager</div>
+            </div>
+            <a href="{% url 'logout' %}" class="logout-btn" title="Logout">
+                <i class="fas fa-power-off"></i>
+            </a>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content" id="main-content">
+        <div class="header">
+            <h1 class="page-title">Banana Ripeness Dashboard</h1>
+            <div class="search-container">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" class="search-input" placeholder="Search fields, drones, or reports...">
+            </div>
+        </div>
+
+       <!-- Environmental Conditions Container -->
+<div class="environmental-conditions">
+    <h2>Environmental Conditions</h2>
+    <div class="dashboard-grid">
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h3 class="card-title">Temperature</h3>
+                <div class="card-icon">
+                    <i class="fas fa-thermometer-half"></i>
+                </div>
+            </div>
+            <div class="card-value" id="temperature">--°C</div>
+        </div>
+
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h3 class="card-title">Humidity</h3>
+                <div class="card-icon">
+                    <i class="fas fa-tint"></i>
+                </div>
+            </div>
+            <div class="card-value" id="humidity">--%</div>
+        </div>
+
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h3 class="card-title">Weather Forecast</h3>
+                <div class="card-icon">
+                    <i class="fas fa-cloud-sun"></i>
+                </div>
+            </div>
+            <div class="card-value" id="weather-forecast">Loading...</div>
+        </div>
+    </div>
+</div>
+        
+        <div class="dashboard-grid">
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h3 class="card-title">Total Yield Prediction</h3>
+                    <div class="card-icon">
+                        <i class="fas fa-balance-scale"></i>
+                    </div>
+                </div>
+                <div class="card-value">24.8 tons</div>
+                <div class="card-subtitle">+12% from last month</div>
+                <div class="card-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 78%;"></div>
+                    </div>
+                    <div class="progress-text">
+                        <span>Progress</span>
+                        <span>78%</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h3 class="card-title">Ripeness Index</h3>
+                    <div class="card-icon">
+                        <i class="fas fa-seedling"></i>
+                    </div>
+                </div>
+                <div class="card-value">68%</div>
+                <div class="card-subtitle">Average across all fields</div>
+                <div class="card-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 68%;"></div>
+                    </div>
+                    <div class="progress-text">
+                        <span>Unripe</span>
+                        <span>Fully Ripe</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h3 class="card-title">Harvest Readiness</h3>
+                    <div class="card-icon">
+                        <i class="fas fa-truck-loading"></i>
+                    </div>
+                </div>
+                <div class="card-value">5 days</div>
+                <div class="card-subtitle">Until optimal harvest time</div>
+                <div class="card-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 65%;"></div>
+                    </div>
+                    <div class="progress-text">
+                        <span>Readiness</span>
+                        <span>65%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; gap: 20px;">
+            <div class="chart-container" style="flex: 1; max-width: 48%;">
+                <div class="chart-header">
+                    <h3 class="chart-title">Monthly Ripeness Progression</h3>
+                    <div class="chart-actions">
+                        <button class="chart-btn">Export</button>
+                    </div>
+                </div>
+                <canvas id="monthlyRipenessChart"></canvas>
+            </div>
+        
+            <div class="chart-container" style="flex: 1; max-width: 48%;">
+                <div class="chart-header">
+                    <h3 class="chart-title">Monthly Yield Prediction</h3>
+                    <div class="chart-actions">
+                        <button class="chart-btn">Export</button>
+                    </div>
+                </div>
+                <canvas id="monthlyYieldChart"></canvas>
+            </div>
+        </div>
+
+        <div class="calendar-container" style="margin-top: 20px;">
+            <h3 class="calendar-title">Schedule Notes</h3>
+            <div id='calendar'></div>
+        </div>
+        
+        <div class="recent-scans">
+            <div class="scans-header">
+                <h3 class="scans-title">Recent Drone Scans</h3>
+                <a href="#" class="view-all">View All Scans</a>
+            </div>
+            
+            <div class="scan-item">
+                <div class="scan-icon">
+                    <i class="fas fa-camera"></i>
+                </div>
+                <div class="scan-details">
+                    <div class="scan-title">North Field Scan</div>
+                    <div class="scan-meta">
+                        <div class="scan-date">Today, 10:30 AM</div>
+                        <div class="scan-area">12.5 acres</div>
+                    </div>
+                </div>
+                <div class="scan-status status-completed">Completed</div>
+            </div>
+            
+            <div class="scan-item">
+                <div class="scan-icon">
+                    <i class="fas fa-camera"></i>
+                </div>
+                <div class="scan-details">
+                    <div class="scan-title">East Field Scan</div>
+                    <div class="scan-meta">
+                        <div class="scan-date">Today, 09:15 AM</div>
+                        <div class="scan-area">8.3 acres</div>
+                    </div>
+                </div>
+                <div class="scan-status status-completed">Completed</div>
+            </div>
+            
+            <div class="scan-item">
+                <div class="scan-icon">
+                    <i class="fas fa-camera"></i>
+                </div>
+                <div class="scan-details">
+                    <div class="scan-title">South Field Scan</div>
+                    <div class="scan-meta">
+                        <div class="scan-date">Today, 11:45 AM</div>
+                        <div class="scan-area">15.7 acres</div>
+                    </div>
+                </div>
+                <div class="scan-status status-processing">Processing</div>
+            </div>
+            
+            <div class="scan-item">
+                <div class="scan-icon">
+                    <i class="fas fa-camera"></i>
+                </div>
+                <div class="scan-details">
+                    <div class="scan-title">West Field Scan</div>
+                    <div class="scan-meta">
+                        <div class="scan-date">Yesterday, 04:20 PM</div>
+                        <div class="scan-area">10.2 acres</div>
+                    </div>
+                </div>
+                <div class="scan-status status-completed">Completed</div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="static/js/chartjs.min.js"></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/5.11.3/main.min.js'></script>
+    <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/5.11.3/main.min.css'/>
+    <script>
+        async function fetchWeatherData() {
+        const response = await fetch('https://api.openweathermap.org/data/2.5/weather?q=YourCity&units=metric&appid=YOUR_API_KEY');
+        const data = await response.json();
+
+        document.getElementById('temperature').innerText = `${data.main.temp}°C`;
+        document.getElementById('humidity').innerText = `${data.main.humidity}%`;
+        document.getElementById('weather-forecast').innerText = data.weather[0].description;
+    }
+
+    fetchWeatherData();
+
+    document.addEventListener('DOMContentLoaded', fetchWeatherData);
+
+        document.addEventListener('DOMContentLoaded', function() {
+        var calendarEl = document.getElementById('calendar');
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            selectable: true,
+            dateClick: function(info) {
+                const note = prompt(`Add a note for ${info.dateStr}:`);
+                if (note) {
+                    calendar.addEvent({
+                        title: note,
+                        start: info.dateStr
+                    });
+                }
+            }
+        });
+        calendar.render();
+    });
+
+        const ripenessCtx = document.getElementById('monthlyRipenessChart').getContext('2d');
+    const monthlyRipenessChart = new Chart(ripenessCtx, {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            datasets: [{
+                label: 'Ripeness Index (%)',
+                data: [45, 50, 60, 65, 70, 75, 80, 85, 90, 92, 95, 98],
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 2,
+                fill: true,
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100
+                }
+            }
+        }
+    });
+
+    // Monthly Yield Prediction Chart
+    const yieldCtx = document.getElementById('monthlyYieldChart').getContext('2d');
+    const monthlyYieldChart = new Chart(yieldCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            datasets: [{
+                label: 'Predicted Yield (kg)',
+                data: [200, 210, 230, 250, 270, 290, 310, 330, 350, 360, 370, 380],
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+        // Toggle sidebar
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('main-content');
+        const toggleBtn = document.getElementById('toggle-btn');
+        
+        toggleBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+        });
+        
+        // Animate progress bars on load
+        document.addEventListener('DOMContentLoaded', () => {
+            const progressBars = document.querySelectorAll('.progress-fill');
+            progressBars.forEach(bar => {
+                const width = bar.style.width;
+                bar.style.width = '0';
+                setTimeout(() => {
+                    bar.style.width = width;
+                }, 300);
+            });
+        });
+    </script>
+</body>
+</html>
