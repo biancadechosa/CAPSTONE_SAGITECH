@@ -17,7 +17,7 @@ app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
 # Load your model
-model_path = r'C:\Users\MyPc\CAPSTONE\sagitech\model\banana_ripeness_model.h5'
+model_path = r'C:\Users\MyPc\CAPSTONE_SAGITECH\sagitech\model\banana_ripeness_model.h5'
 logger.info(f"Loading model from: {model_path}")
 
 try:
