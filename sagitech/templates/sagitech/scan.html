@@ -7,6 +7,110 @@
 <title>Sagitech-Banana Growth Stage Scanner</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="stylesheet" href="{% static 'css/scan.css' %}">
+<style>
+    /* Additional styles for camera functionality */
+    .camera-container {
+        position: relative;
+        width: 100%;
+        border-radius: 0.5rem;
+        overflow: hidden;
+        background-color: #000;
+        display: none;
+    }
+    
+    .camera-video {
+        width: 100%;
+        height: 300px;
+        object-fit: cover;
+    }
+    
+    .camera-controls {
+        position: absolute;
+        bottom: 1rem;
+        left: 0;
+        right: 0;
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+    }
+    
+    .camera-btn {
+        width: 3.5rem;
+        height: 3.5rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        cursor: pointer;
+    }
+    
+    .capture-btn {
+        background-color: #65a30d;
+        color: white;
+    }
+    
+    .capture-btn:hover {
+        background-color: #4d7c0f;
+    }
+    
+    .close-btn {
+        background-color: white;
+        color: #ef4444;
+        border: 1px solid #ef4444;
+    }
+    
+    .close-btn:hover {
+        background-color: #fee2e2;
+    }
+    
+    .upload-options {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .option-btn {
+        background-color: #65a30d;
+        color: white;
+        border: none;
+        border-radius: 0.375rem;
+        padding: 0.5rem 1rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        font-weight: 500;
+        transition: background-color 0.2s;
+        font-size: 0.875rem;
+        min-width: 140px;
+        justify-content: center;
+    }
+
+    .option-btn:hover {
+        background-color: #4d7c0f;
+    }
+
+    .option-separator {
+        font-size: 0.875rem;
+        color: #6b7280;
+        font-weight: 500;
+        margin: 0 0.25rem;
+    }
+
+    /* Update existing button styles to use the new common class */
+    .upload-btn {
+        background-color: #65a30d;
+        color: white;
+    }
+
+    .camera-btn {
+        background-color: #65a30d;
+        color: white;
+    }
+</style>
 </head>
 <body>
 
@@ -28,15 +132,35 @@
         
         <!-- Upload Interface -->
         <div id="upload-interface">
+            <!-- Camera Container -->
+            <div id="camera-container" class="camera-container">
+                <video id="camera-video" class="camera-video" autoplay playsinline></video>
+                <div class="camera-controls">
+                    <button id="capture-btn" class="camera-btn capture-btn">
+                        <i class="fas fa-camera"></i>
+                    </button>
+                    <button id="close-camera-btn" class="camera-btn close-btn">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            
             <div class="upload-container" id="upload-container">
                 <div id="upload-prompt">
                     <i class="fas fa-cloud-upload-alt upload-icon"></i>
                     <div class="upload-text">Upload Banana Image</div>
                     <div class="upload-subtext">Drag and drop an image or click to browse</div>
-                    <label for="file-input" class="upload-btn">
-                        <i class="fas fa-file-image"></i>
-                        Choose Image
-                    </label>
+                    <div class="upload-options">
+                        <label for="file-input" class="option-btn upload-btn">
+                            <i class="fas fa-file-image"></i>
+                            Choose Image
+                        </label>
+                        <div class="option-separator">or</div>
+                        <button id="open-camera-btn" class="option-btn camera-btn">
+                            <i class="fas fa-camera"></i>
+                            Use Camera
+                        </button>
+                    </div>
                     <input type="file" id="file-input" class="file-input" accept="image/*">
                 </div>
                 
@@ -219,6 +343,15 @@
     const resultCard = document.getElementById('result-card');
     const captureCanvas = document.getElementById('capture-canvas');
     
+    // Camera elements
+    const cameraContainer = document.getElementById('camera-container');
+    const cameraVideo = document.getElementById('camera-video');
+    const openCameraBtn = document.getElementById('open-camera-btn');
+    const closeCameraBtn = document.getElementById('close-camera-btn');
+    const captureBtn = document.getElementById('capture-btn');
+    
+    let cameraStream = null;
+    
     // Handle file selection
     fileInput.addEventListener('change', function(e) {
         if (e.target.files && e.target.files[0]) {
@@ -305,6 +438,78 @@
         analyzeBtn.disabled = true;
         fileInput.value = '';
     });
+    
+    // Camera functionality
+    openCameraBtn.addEventListener('click', openCamera);
+    closeCameraBtn.addEventListener('click', closeCamera);
+    captureBtn.addEventListener('click', captureImage);
+    
+    // Open camera
+    async function openCamera() {
+        try {
+            // Close any existing stream
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+            }
+            
+            // Request camera access
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: "environment" } // Prefer back camera if available
+            });
+            
+            cameraStream = stream;
+            
+            // Display the camera feed
+            cameraVideo.srcObject = stream;
+            
+            // Show camera container, hide upload container
+            cameraContainer.style.display = 'block';
+            uploadContainer.style.display = 'none';
+        } catch (err) {
+            console.error("Error accessing camera:", err);
+            alert("Could not access camera. Please check permissions.");
+        }
+    }
+    
+    // Close camera
+    function closeCamera() {
+        // Stop all tracks
+        if (cameraStream) {
+            cameraStream.getTracks().forEach(track => track.stop());
+            cameraStream = null;
+        }
+        
+        // Hide camera container, show upload container
+        cameraContainer.style.display = 'none';
+        uploadContainer.style.display = 'block';
+    }
+    
+    // Capture image from camera
+    function captureImage() {
+        if (cameraVideo) {
+            const canvas = document.getElementById('capture-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Set canvas dimensions to match video
+            canvas.width = cameraVideo.videoWidth;
+            canvas.height = cameraVideo.videoHeight;
+            
+            // Draw the current video frame to the canvas
+            ctx.drawImage(cameraVideo, 0, 0, canvas.width, canvas.height);
+            
+            // Convert to data URL and set as preview
+            const dataUrl = canvas.toDataURL('image/jpeg');
+            previewImage.src = dataUrl;
+            
+            // Show preview
+            uploadPrompt.style.display = 'none';
+            previewContainer.style.display = 'block';
+            analyzeBtn.disabled = false;
+            
+            // Close camera
+            closeCamera();
+        }
+    }
     
     // Remove any existing event listeners and add a new one
     if (analyzeBtn.onclick) {
@@ -791,4 +996,3 @@
 </script>
 </body>
 </html>
-

@@ -308,3 +308,4 @@ class UpcomingEventsView(View):
 @login_required
 def Settings(request):
     return render(request, 'sagitech/settings.html')
+
