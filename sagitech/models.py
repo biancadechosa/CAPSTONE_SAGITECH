@@ -36,3 +36,33 @@ class UserProfile(models.Model):
     def __str__(self):
         return self.user.email
 
+# New model for calendar events
+class CalendarEvent(models.Model):
+    LOCATION_CHOICES = (
+        ('north', 'North Field'),
+        ('east', 'East Field'),
+        ('south', 'South Field'),
+        ('west', 'West Field'),
+        ('all', 'All Fields'),
+    )
+    
+    REMINDER_CHOICES = (
+        ('none', 'No Reminder'),
+        ('same', 'Same Day'),
+        ('1day', '1 Day Before'),
+        ('3days', '3 Days Before'),
+        ('1week', '1 Week Before'),
+    )
+    
+    title = models.CharField(max_length=255)
+    start_date = models.DateField()
+    end_date = models.DateField(null=True, blank=True)
+    description = models.TextField(blank=True)
+    location = models.CharField(max_length=10, choices=LOCATION_CHOICES, default='all')
+    reminder = models.CharField(max_length=10, choices=REMINDER_CHOICES, default='none')
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='events')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"{self.title} - {self.start_date}"

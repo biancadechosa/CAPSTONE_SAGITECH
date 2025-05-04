@@ -1,0 +1,991 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sagitech - Harvest Schedule</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <!-- Updated FullCalendar CDN links -->
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
+    <style>
+        .calendar-container {
+            background-color: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+        
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .calendar-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        .calendar-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .calendar-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .btn-primary {
+            background-color: #4caf50;
+            color: white;
+        }
+        
+        .btn-secondary {
+            background-color: #f5f5f5;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+        
+        .event-list {
+            margin-top: 30px;
+        }
+        
+        .event-list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .event-list-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        .event-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: white;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .event-item:hover {
+            transform: translateY(-2px);
+        }
+        
+        .event-color {
+            width: 12px;
+            height: 50px;
+            border-radius: 6px;
+            margin-right: 15px;
+        }
+        
+        .event-color.harvest {
+            background-color: #4caf50;
+        }
+        
+        .event-details {
+            flex: 1;
+        }
+        
+        .event-title {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 5px;
+        }
+        
+        .event-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 0.875rem;
+            color: #666;
+        }
+        
+        .event-date, .event-location {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .event-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .event-action {
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 5px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        
+        .event-action:hover {
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            max-width: 600px;
+        }
+        
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+        }
+        
+        .modal-header {
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .modal-title {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+        
+        .event-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .form-group textarea {
+            height: 100px;
+            resize: vertical;
+        }
+        
+        .form-group.full-width {
+            grid-column: span 2;
+        }
+        
+        .btn-group {
+            grid-column: span 2;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        .btn-primary {
+            background-color: #4caf50;
+            color: white;
+        }
+        
+        .btn-secondary {
+            background-color: #f5f5f5;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+        
+        .btn-danger {
+            background-color: #f44336;
+            color: white;
+        }
+        
+        /* Event colors */
+        .event-harvest {
+            background-color: #4caf50 !important;
+            border-color: #4caf50 !important;
+        }
+        
+        /* Status Notification Styles */
+    .status-notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        max-width: 350px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        padding: 12px 16px;
+        z-index: 1000;
+        transform: translateY(-10px);
+        opacity: 0;
+        transition: transform 0.3s ease, opacity 0.3s ease;
+        pointer-events: none;
+    }
+    
+    .status-notification.show {
+        transform: translateY(0);
+        opacity: 1;
+    }
+    
+    .notification-content {
+        font-size: 14px;
+        line-height: 1.5;
+    }
+    
+    .notification-message {
+        display: flex;
+        align-items: center;
+        margin-bottom: 6px;
+    }
+    
+    .notification-message:last-child {
+        margin-bottom: 0;
+    }
+    
+    .notification-icon {
+        margin-right: 8px;
+        color: #4caf50;
+    }
+    
+    .notification-icon.info {
+        color: #2196f3;
+    }
+    
+    .notification-icon.warning {
+        color: #ff9800;
+    }
+    
+    .notification-icon.error {
+        color: #f44336;
+    }
+    </style>
+</head>
+<body>
+    
+    {% include 'sagitech/sidebar.html' %}
+    
+    <!-- Main Content -->
+    <div class="main-content" id="main-content">
+        <div class="header">
+            <h1 class="page-title">Harvest Schedule</h1>
+        </div>
+        
+        <div id="status-notification" class="status-notification">
+            <div class="notification-content" id="notification-content"></div>
+        </div>
+        
+        <div class="calendar-container">
+            <div class="calendar-header">
+                <h2 class="calendar-title">Harvest Calendar</h2>
+                <div class="calendar-actions">
+                    <button id="add-event-btn" class="calendar-btn btn-primary">
+                        <i class="fas fa-plus"></i> Add Harvest
+                    </button>
+                </div>
+            </div>
+            <div id="calendar-full" style="height: 600px;"></div>
+        </div>
+        
+        <div class="event-list">
+            <div class="event-list-header">
+                <h3 class="event-list-title">Upcoming Harvests</h3>
+            </div>
+            <div id="upcoming-events">
+                <!-- Events will be loaded dynamically -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Event Modal -->
+    <div id="event-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Add Harvest Event</h2>
+                <span class="close" id="close-event-modal">&times;</span>
+            </div>
+            <form id="event-form" class="event-form">
+                <div class="form-group">
+                    <label for="event-title">Harvest Title</label>
+                    <input type="text" id="event-title" name="event-title" placeholder="e.g., North Field Banana Harvest" required>
+                </div>
+                <input type="hidden" id="event-type" name="event-type" value="harvest">
+                <div class="form-group">
+                    <label for="event-start">Harvest Date</label>
+                    <input type="date" id="event-start" name="event-start" required>
+                </div>
+                <div class="form-group">
+                    <label for="event-end">End Date (Optional)</label>
+                    <input type="date" id="event-end" name="event-end">
+                </div>
+                <div class="form-group full-width">
+                    <label for="event-description">Description</label>
+                    <textarea id="event-description" name="event-description" placeholder="Add notes about expected yield, crew size, equipment needed, etc."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="event-location">Location/Field</label>
+                    <select id="event-location" name="event-location">
+                        <option value="north">North Field</option>
+                        <option value="east">East Field</option>
+                        <option value="south">South Field</option>
+                        <option value="west">West Field</option>
+                        <option value="all">All Fields</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="event-reminder">Set Reminder</label>
+                    <select id="event-reminder" name="event-reminder">
+                        <option value="none">No Reminder</option>
+                        <option value="same">Same Day</option>
+                        <option value="1day">1 Day Before</option>
+                        <option value="3days">3 Days Before</option>
+                        <option value="1week">1 Week Before</option>
+                    </select>
+                </div>
+                <div class="btn-group">
+                    <button type="button" id="delete-event" class="btn btn-danger" style="display: none;">Delete</button>
+                    <button type="button" id="cancel-event" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Harvest</button>
+                </div>
+                <input type="hidden" id="event-id" name="event-id">
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        let notificationTimeout = null;
+    let lastActivity = Date.now();
+    
+    // Show a notification message to the user
+    function notify(message, type = 'info') {
+        const notification = document.getElementById('status-notification');
+        const content = document.getElementById('notification-content');
+        
+        if (!notification || !content) return;
+        
+        // Create icon based on type
+        let icon = 'info-circle';
+        switch (type) {
+            case 'success': icon = 'check-circle'; break;
+            case 'warning': icon = 'exclamation-triangle'; break;
+            case 'error': icon = 'exclamation-circle'; break;
+            default: icon = 'info-circle';
+        }
+        
+        // Create message element
+        const messageEl = document.createElement('div');
+        messageEl.className = 'notification-message';
+        messageEl.innerHTML = `
+            <i class="fas fa-${icon} notification-icon ${type}"></i>
+            <span>${message}</span>
+        `;
+        
+        // Add to notification
+        content.appendChild(messageEl);
+        
+        // Show notification
+        notification.classList.add('show');
+        
+        // Update last activity time
+        lastActivity = Date.now();
+        
+        // Clear existing timeout
+        if (notificationTimeout) {
+            clearTimeout(notificationTimeout);
+        }
+        
+        // Set timeout to check for inactivity
+        notificationTimeout = setTimeout(checkActivity, 1000);
+        
+        // Log to console as well
+        console.log(`[${type.toUpperCase()}] ${message}`);
+    }
+    
+    // Check for inactivity and hide notification if needed
+    function checkActivity() {
+        const now = Date.now();
+        const inactiveTime = now - lastActivity;
+        
+        if (inactiveTime >= 3000) {
+            // Hide notification after 1 second of inactivity
+            const notification = document.getElementById('status-notification');
+            if (notification) {
+                notification.classList.remove('show');
+                
+                // Clear content after animation completes
+                setTimeout(() => {
+                    const content = document.getElementById('notification-content');
+                    if (content) {
+                        content.innerHTML = '';
+                    }
+                }, 300);
+            }
+        } else {
+            // Check again in 100ms
+            notificationTimeout = setTimeout(checkActivity, 100);
+        }
+    }
+    
+    // Replace debug function with notify
+    function debug(message) {
+        notify(message, 'info');
+    }
+        
+        // Calendar functionality
+        let calendar;
+        let currentEventId = null;
+        
+        // Sample events for testing
+        const sampleEvents = [
+            {
+                id: '1',
+                title: 'North Field Harvest',
+                start: '2025-03-25',
+                end: '2025-03-26',
+                extendedProps: {
+                    description: 'Harvest bananas from the north field',
+                    location: 'north',
+                    reminder: 'none'
+                }
+            },
+            {
+                id: '2',
+                title: 'East Field Harvest',
+                start: '2025-04-05',
+                end: '2025-04-06',
+                extendedProps: {
+                    description: 'Harvest bananas from the east field',
+                    location: 'east',
+                    reminder: 'none'
+                }
+            },
+            {
+                id: '3',
+                title: 'South Field Harvest',
+                start: '2025-04-15',
+                end: '2025-04-16',
+                extendedProps: {
+                    description: 'Harvest bananas from the south field',
+                    location: 'south',
+                    reminder: 'none'
+                }
+            }
+        ];
+
+        // Load events from localStorage
+        function loadEvents() {
+            const savedEvents = localStorage.getItem('harvestCalendarEvents');
+            if (savedEvents) {
+                try {
+                    return JSON.parse(savedEvents);
+                } catch (e) {
+                    debug('Error parsing events from localStorage: ' + e.message);
+                    return sampleEvents;
+                }
+            } else {
+                debug('No events found in localStorage, using sample events');
+                // Save sample events to localStorage
+                saveEvents(sampleEvents);
+                return sampleEvents;
+            }
+        }
+
+        // Save events to localStorage
+        function saveEvents(events) {
+            localStorage.setItem('harvestCalendarEvents', JSON.stringify(events));
+        }
+
+        // Initialize calendar
+        function initCalendar() {
+            const calendarEl = document.getElementById('calendar-full');
+            
+            if (!calendarEl) {
+                debug('ERROR: Calendar element not found!');
+                return;
+            }
+            
+            try {
+                // Initialize full calendar
+                calendar = new FullCalendar.Calendar(calendarEl, {
+                    initialView: 'dayGridMonth',
+                    headerToolbar: {
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: 'dayGridMonth,timeGridWeek,listMonth'
+                    },
+                    events: loadEvents(),
+                    eventClick: function(info) {
+                        debug('Event clicked: ' + info.event.title);
+                        openEventModal(info.event);
+                    },
+                    dateClick: function(info) {
+                        debug('Date clicked: ' + info.dateStr);
+                        openEventModal(null, info.dateStr);
+                    },
+                    eventClassNames: function() {
+                        return ['event-harvest']; // All events are harvest events
+                    },
+                    eventColor: '#4caf50', // Set default color for all events
+                    height: 'auto'
+                });
+                
+                calendar.render();
+                updateUpcomingEvents();
+            } catch (e) {
+                debug('ERROR initializing calendar: ' + e.message);
+                console.error(e);
+            }
+        }
+
+        // Update upcoming events list
+        function updateUpcomingEvents() {
+            const events = loadEvents();
+            const upcomingEventsEl = document.getElementById('upcoming-events');
+            
+            if (!upcomingEventsEl) {
+                debug('ERROR: Upcoming events element not found!');
+                return;
+            }
+            
+            // Sort events by date
+            events.sort((a, b) => new Date(a.start) - new Date(b.start));
+            
+            // Get only future events
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            const futureEvents = events.filter(event => {
+                const eventDate = new Date(event.start);
+                return eventDate >= today;
+            });
+            
+            // Limit to 10 events
+            const upcomingEvents = futureEvents.slice(0, 10);
+            
+            // Clear existing events
+            upcomingEventsEl.innerHTML = '';
+            
+            // Add events to list
+            if (upcomingEvents.length === 0) {
+                upcomingEventsEl.innerHTML = '<p>No upcoming harvest events found.</p>';
+            } else {
+                upcomingEvents.forEach(event => {
+                    const eventDate = new Date(event.start);
+                    const formattedDate = eventDate.toLocaleDateString([], {
+                        weekday: 'short',
+                        month: 'short',
+                        day: 'numeric'
+                    });
+                    
+                    const eventEl = document.createElement('div');
+                    eventEl.className = 'event-item';
+                    eventEl.dataset.eventId = event.id;
+                    
+                    eventEl.innerHTML = `
+                        <div class="event-color harvest"></div>
+                        <div class="event-details">
+                            <div class="event-title">${event.title}</div>
+                            <div class="event-meta">
+                                <div class="event-date">
+                                    <i class="fas fa-calendar-day"></i> ${formattedDate}
+                                </div>
+                                <div class="event-location">
+                                    <i class="fas fa-map-marker-alt"></i> ${getLocationName(event.extendedProps.location)}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="event-actions">
+                            <button class="event-action edit-event" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="event-action delete-event" title="Delete">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    `;
+                    
+                    upcomingEventsEl.appendChild(eventEl);
+                    
+                    // Add event listeners
+                    eventEl.querySelector('.edit-event').addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const eventObj = calendar.getEventById(event.id);
+                        if (eventObj) {
+                            openEventModal(eventObj);
+                        }
+                    });
+                    
+                    eventEl.querySelector('.delete-event').addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        if (confirm('Are you sure you want to delete this harvest event?')) {
+                            deleteEvent(event.id);
+                        }
+                    });
+                    
+                    eventEl.addEventListener('click', () => {
+                        const eventObj = calendar.getEventById(event.id);
+                        if (eventObj) {
+                            openEventModal(eventObj);
+                        }
+                    });
+                });
+            }
+        }
+
+        // Get location name from value
+        function getLocationName(location) {
+            const locations = {
+                'north': 'North Field',
+                'east': 'East Field',
+                'south': 'South Field',
+                'west': 'West Field',
+                'all': 'All Fields'
+            };
+            
+            return locations[location] || 'Unknown';
+        }
+
+        // Open event modal
+        function openEventModal(event, dateStr) {
+            const modal = document.getElementById('event-modal');
+            const form = document.getElementById('event-form');
+            const deleteBtn = document.getElementById('delete-event');
+            
+            if (!modal || !form) {
+                debug('ERROR: Modal or form element not found!');
+                return;
+            }
+            
+            // Reset form
+            form.reset();
+            
+            // Always set event type to harvest
+            document.getElementById('event-type').value = 'harvest';
+            
+            // Set minimum date to today to disable past dates
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('event-start').setAttribute('min', today);
+            document.getElementById('event-end').setAttribute('min', today);
+            
+            // If editing existing event
+            if (event) {
+                debug('Editing existing event: ' + event.title);
+                document.querySelector('.modal-title').textContent = 'Edit Harvest Event';
+                document.getElementById('event-title').value = event.title;
+                
+                // Handle date formatting
+                let startDate = event.start;
+                if (typeof startDate !== 'string') {
+                    startDate = startDate.toISOString();
+                }
+                document.getElementById('event-start').value = startDate.split('T')[0];
+                
+                if (event.end) {
+                    let endDate = event.end;
+                    if (typeof endDate !== 'string') {
+                        endDate = endDate.toISOString();
+                    }
+                    document.getElementById('event-end').value = endDate.split('T')[0];
+                }
+                
+                document.getElementById('event-description').value = event.extendedProps.description || '';
+                document.getElementById('event-location').value = event.extendedProps.location || 'all';
+                document.getElementById('event-reminder').value = event.extendedProps.reminder || 'none';
+                document.getElementById('event-id').value = event.id;
+                currentEventId = event.id;
+                deleteBtn.style.display = 'block';
+            } else {
+                // New event
+                debug('Creating new event');
+                document.querySelector('.modal-title').textContent = 'Add Harvest Event';
+                if (dateStr) {
+                    document.getElementById('event-start').value = dateStr;
+                } else {
+                    // Set today's date as default
+                    const today = new Date().toISOString().split('T')[0];
+                    document.getElementById('event-start').value = today;
+                }
+                currentEventId = null;
+                deleteBtn.style.display = 'none';
+            }
+            
+            modal.style.display = 'block';
+        }
+
+        // Save event
+        function saveEvent(formData) {
+            debug('Saving event');
+            const events = loadEvents();
+            
+            // Get form values
+            const title = formData.get('event-title');
+            const start = formData.get('event-start');
+            const end = formData.get('event-end') || formData.get('event-start');
+            const description = formData.get('event-description');
+            const location = formData.get('event-location');
+            const reminder = formData.get('event-reminder');
+            
+            debug(`Event details: ${title}, ${start} to ${end}, ${location}`);
+            
+            const eventData = {
+                id: currentEventId || Date.now().toString(),
+                title: title,
+                start: start,
+                end: end,
+                extendedProps: {
+                    type: 'harvest', // Always set to harvest
+                    description: description,
+                    location: location,
+                    reminder: reminder
+                }
+            };
+            
+            // If editing, remove old event
+            if (currentEventId) {
+                debug('Updating existing event: ' + currentEventId);
+                const index = events.findIndex(e => e.id === currentEventId);
+                if (index !== -1) {
+                    events.splice(index, 1);
+                }
+            } else {
+                debug('Adding new event');
+            }
+            
+            // Add new/updated event
+            events.push(eventData);
+            saveEvents(events);
+            
+            try {
+                // Refresh calendar
+                calendar.getEventSources().forEach(source => source.remove());
+                calendar.addEventSource(events);
+            } catch (e) {
+                debug('ERROR refreshing calendar: ' + e.message);
+                console.error(e);
+            }
+            
+            // Update upcoming events
+            updateUpcomingEvents();
+            
+            // Set reminder if needed
+            if (eventData.extendedProps.reminder !== 'none') {
+                setEventReminder(eventData);
+            }
+            
+            // Close modal
+            document.getElementById('event-modal').style.display = 'none';
+        }
+
+        // Delete event
+        function deleteEvent(eventId) {
+            debug('Deleting event: ' + eventId);
+            if (!eventId) return;
+            
+            const events = loadEvents();
+            const index = events.findIndex(e => e.id === eventId);
+            
+            if (index !== -1) {
+                events.splice(index, 1);
+                saveEvents(events);
+                
+                try {
+                    // Refresh calendar
+                    debug('Refreshing calendar after delete');
+                    calendar.getEventSources().forEach(source => source.remove());
+                    calendar.addEventSource(events);
+                } catch (e) {
+                    debug('ERROR refreshing calendar after delete: ' + e.message);
+                    console.error(e);
+                }
+                
+                // Update upcoming events
+                updateUpcomingEvents();
+            }
+            
+            // Close modal
+            document.getElementById('event-modal').style.display = 'none';
+        }
+
+        // Set event reminder
+        function setEventReminder(event) {
+            debug('Setting reminder for event: ' + event.title);
+            const reminderType = event.extendedProps.reminder;
+            const eventDate = new Date(event.start);
+            let reminderDate = new Date(eventDate);
+            
+            // Calculate reminder date
+            switch (reminderType) {
+                case 'same':
+                    // Same day, no adjustment needed
+                    break;
+                case '1day':
+                    reminderDate.setDate(eventDate.getDate() - 1);
+                    break;
+                case '3days':
+                    reminderDate.setDate(eventDate.getDate() - 3);
+                    break;
+                case '1week':
+                    reminderDate.setDate(eventDate.getDate() - 7);
+                    break;
+                default:
+                    return; // No reminder
+            }
+            
+            // Store reminder in localStorage
+            const reminders = JSON.parse(localStorage.getItem('harvestReminders') || '[]');
+            reminders.push({
+                eventId: event.id,
+                eventTitle: event.title,
+                eventDate: event.start,
+                reminderDate: reminderDate.toISOString(),
+                location: event.extendedProps.location
+            });
+            
+            localStorage.setItem('harvestReminders', JSON.stringify(reminders));
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            // Initialize
+            initCalendar();
+            
+            // Toggle sidebar
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('main-content');
+            const toggleBtn = document.getElementById('toggle-btn');
+            
+            if (sidebar && mainContent && toggleBtn) {
+                toggleBtn.addEventListener('click', () => {
+                    debug('Toggling sidebar');
+                    sidebar.classList.toggle('collapsed');
+                    mainContent.classList.toggle('expanded');
+                });
+            } else {
+                debug('WARNING: Sidebar elements not found');
+            }
+            
+            // Event modal
+            const eventModal = document.getElementById('event-modal');
+            const eventForm = document.getElementById('event-form');
+            const closeEventModal = document.getElementById('close-event-modal');
+            const cancelEventBtn = document.getElementById('cancel-event');
+            const deleteEventBtn = document.getElementById('delete-event');
+            const addEventBtn = document.getElementById('add-event-btn');
+            
+            if (!eventModal || !eventForm) {
+                debug('ERROR: Event modal elements not found!');
+            } else {
+                if (addEventBtn) {
+                    addEventBtn.addEventListener('click', function() {
+                        debug('Add event button clicked');
+                        openEventModal(null, new Date().toISOString().split('T')[0]);
+                    });
+                } else {
+                    debug('ERROR: Add event button not found!');
+                }
+                
+                eventForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    debug('Event form submitted');
+                    const formData = new FormData(eventForm);
+                    saveEvent(formData);
+                });
+                
+                if (closeEventModal) {
+                    closeEventModal.addEventListener('click', function() {
+                        debug('Close event modal clicked');
+                        eventModal.style.display = 'none';
+                    });
+                }
+                
+                if (cancelEventBtn) {
+                    cancelEventBtn.addEventListener('click', function() {
+                        debug('Cancel event button clicked');
+                        eventModal.style.display = 'none';
+                    });
+                }
+                
+                if (deleteEventBtn) {
+                    deleteEventBtn.addEventListener('click', function() {
+                        debug('Delete event button clicked');
+                        if (confirm('Are you sure you want to delete this harvest event?')) {
+                            deleteEvent(currentEventId);
+                        }
+                    });
+                }
+            }
+            
+            // Close modals when clicking outside
+            window.addEventListener('click', function(e) {
+                if (e.target === eventModal) {
+                    debug('Clicked outside modal, closing');
+                    eventModal.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
