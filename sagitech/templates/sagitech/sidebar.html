@@ -1,0 +1,85 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+</head>
+<body>
+    <div class="sidebar" id="sidebar">
+        <div class="header">
+            <img src="{% static 'img/logo.png' %}" alt="Sagitech Logo" class="logo">
+        </div>
+        
+        <div class="toggle-btn" id="toggle-btn">
+            <i class="fas fa-chevron-left"></i>
+        </div>
+        
+        <ul class="nav-menu">
+            <li class="nav-item {% if request.path == '/dashboard/' %}active{% endif %}">
+                <a href="{% url 'dashboard' %}" class="nav-link">
+                    <div class="nav-icon"><i class="fas fa-tachometer-alt"></i></div>
+                    <span class="nav-text">Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <div class="nav-icon"><i class="fas fa-map-marked-alt"></i></div>
+                    <span class="nav-text">Field Maps</span>
+                </a>
+            </li>
+            <li class="nav-item {% if request.path == '/scan/' %}active{% endif %}">
+                <a href="{% url 'scan' %}" class="nav-link">
+                    <div class="nav-icon"><i class="fas fa-camera"></i></div>
+                    <span class="nav-text">Banana Scan</span>
+                </a>
+            </li>
+           
+            <li class="nav-item {% if request.path == '/schedule/' %}active{% endif %}">
+                <a href="{% url 'schedule' %}" class="nav-link">
+                    <div class="nav-icon"><i class="fas fa-calendar-alt"></i></div>
+                    <span class="nav-text">Schedule</span>
+                </a>        
+            </li>
+            <li class="nav-item {% if request.path == '/settings/' %}active{% endif %}">
+                <a href="{% url 'settings' %}" class="nav-link">
+                    <div class="nav-icon"><i class="fas fa-cog"></i></div>
+                    <span class="nav-text">Settings</span>
+                </a>
+            </li>
+        </ul>
+        
+        <div class="user-profile">
+            <div class="user-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="user-info">
+                <div class="user-name">
+                    {% if user.is_authenticated %}
+                        {% if user.profile.full_name %}
+                            {{ user.profile.full_name }}
+                        {% else %}
+                            {{ user.email }}
+                        {% endif %}
+                    {% else %}
+                        Guest User
+                    {% endif %}
+                </div>
+                <div class="user-role">
+                    {% if user.is_authenticated %}
+                        {% if user.is_staff %}
+                            Administrator
+                        {% else %}
+                            Farm Manager
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+            <a href="{% url 'logout' %}" class="logout-btn" title="Logout">
+                <i class="fas fa-power-off"></i>
+            </a>
+        </div>
+    </div>
+</body>
+</html>
